@@ -1,6 +1,7 @@
 # Update this to give whichever name you want. This may be set on the command line:
 # > make build OUT_FILE=./outfile.zip
-OUT_FILE?=./deliverable.zip
+OUT_FILE?=./dist.zip
+BUILDDIR=./out
 
 ### Below this point it should not need to be changed
 # get absolute path of zipfile to deliver
@@ -22,8 +23,10 @@ run:
 clean:
 	rm -f ${DELIVERABLE}
 
-# Rebuild the delivrable
+# Rebuild the deliverable
+# see https://github.com/pypa/pipenv/issues/986#issuecomment-394741582
 build:
-	$(eval VENV = $(shell pipenv --venv))
-	cd ${VENV}/lib/python3.6/site-packages && zip -r9 ${DELIVERABLE} ./*
-	zip -r9 ${DELIVERABLE} *.py
+	mkdir -p $(BUILDDIR)
+	$(pipenv) lock -r > $(BUILDDIR)/requirements.txt
+	cp -R $(SRCDIR)/* $(BUILDDIR)
+	$(pipenv) run pip install --isolated --disable-pip-version-check -r $(BUILDDIR)/requirements.txt -t $(BUILDDIR) -U
